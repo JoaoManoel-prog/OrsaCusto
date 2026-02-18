@@ -1,0 +1,32 @@
+# Backend Dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy csproj files and restore dependencies
+COPY ["OrsaCusto.Api/OrsaCusto.Api.csproj", "OrsaCusto.Api/"]
+COPY ["OrsaCusto.Application/OrsaCusto.Application.csproj", "OrsaCusto.Application/"]
+COPY ["OrsaCusto.Domain/OrsaCusto.Domain.csproj", "OrsaCusto.Domain/"]
+COPY ["OrsaCusto.Infrastructure/OrsaCusto.Infrastructure.csproj", "OrsaCusto.Infrastructure/"]
+
+RUN dotnet restore "OrsaCusto.Api/OrsaCusto.Api.csproj"
+
+# Copy everything else and build
+COPY . .
+WORKDIR "/src/OrsaCusto.Api"
+RUN dotnet build "OrsaCusto.Api.csproj" -c Release -o /app/build
+
+# Publish
+FROM build AS publish
+RUN dotnet publish "OrsaCusto.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+EXPOSE 5000
+
+# Create non-root user
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+USER appuser
+
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "OrsaCusto.Api.dll"]

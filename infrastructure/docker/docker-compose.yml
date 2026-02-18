@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: orsacusto-postgres
+    environment:
+      POSTGRES_DB: orsacusto
+      POSTGRES_USER: orsacusto
+      POSTGRES_PASSWORD: orsacusto_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database-schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orsacusto"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orsacusto-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: orsacusto-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orsacusto-network
+
+  # Backend API (C# .NET)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: orsacusto-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=orsacusto;Username=orsacusto;Password=orsacusto_password
+      - ConnectionStrings__Redis=redis:6379
+      - JWT__Secret=your-super-secret-key-change-in-production
+      - JWT__Issuer=OrsaCusto
+      - JWT__Audience=OrsaCustoUsers
+      - JWT__ExpirationMinutes=60
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - backend_build:/app/bin
+      - backend_obj:/app/obj
+    networks:
+      - orsacusto-network
+    restart: unless-stopped
+
+  # Frontend (React TypeScript)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: orsacusto-frontend
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - orsacusto-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Optional - for production-like setup)
+  nginx:
+    image: nginx:alpine
+    container_name: orsacusto-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/docker/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - orsacusto-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_build:
+    driver: local
+  backend_obj:
+    driver: local
+
+networks:
+  orsacusto-network:
+    driver: bridge

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orsacusto-config
+  labels:
+    app: orsacusto
+data:
+  # API Configuration
+  api-url: "https://api.orsacusto.com"
+  
+  # JWT Configuration
+  jwt-issuer: "OrsaCusto"
+  jwt-audience: "OrsaCustoUsers"
+  jwt-expiration-minutes: "60"
+  
+  # Redis Configuration
+  redis-host: "redis-service:6379"
+  
+  # Application Settings
+  app-name: "OrsaCusto"
+  environment: "Production"
+  
+  # CORS Origins (comma-separated)
+  cors-origins: "https://orsacusto.com,https://www.orsacusto.com"
+  
+  # File Upload Settings
+  max-file-size-mb: "10"
+  allowed-file-extensions: ".pdf,.jpg,.jpeg,.png,.xlsx,.csv"
+  
+  # Pagination Settings
+  default-page-size: "20"
+  max-page-size: "100"
+  
+  # Email Settings (non-sensitive)
+  email-from-name: "OrsaCusto"
+  email-from-address: "noreply@orsacusto.com"

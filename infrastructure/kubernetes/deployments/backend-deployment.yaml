@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orsacusto-backend
+  labels:
+    app: orsacusto
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: orsacusto
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: orsacusto
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: orsacusto/backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:5000"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: orsacusto-secrets
+              key: database-connection-string
+        - name: ConnectionStrings__Redis
+          valueFrom:
+            configMapKeyRef:
+              name: orsacusto-config
+              key: redis-host
+        - name: JWT__Secret
+          valueFrom:
+            secretKeyRef:
+              name: orsacusto-secrets
+              key: jwt-secret
+        - name: JWT__Issuer
+          valueFrom:
+            configMapKeyRef:
+              name: orsacusto-config
+              key: jwt-issuer
+        - name: JWT__Audience
+          valueFrom:
+            configMapKeyRef:
+              name: orsacusto-config
+              key: jwt-audience
+        - name: JWT__ExpirationMinutes
+          valueFrom:
+            configMapKeyRef:
+              name: orsacusto-config
+              key: jwt-expiration-minutes
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orsacusto-backend-service
+  labels:
+    app: orsacusto
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: orsacusto
+    component: backend
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http

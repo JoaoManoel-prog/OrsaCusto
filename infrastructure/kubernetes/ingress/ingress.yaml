@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orsacusto-ingress
+  labels:
+    app: orsacusto
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  tls:
+  - hosts:
+    - orsacusto.com
+    - www.orsacusto.com
+    - api.orsacusto.com
+    secretName: orsacusto-tls
+  rules:
+  # Frontend Rules
+  - host: orsacusto.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: orsacusto-frontend-service
+            port:
+              number: 80
+  - host: www.orsacusto.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: orsacusto-frontend-service
+            port:
+              number: 80
+  # Backend API Rules
+  - host: api.orsacusto.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: orsacusto-backend-service
+            port:
+              number: 80
