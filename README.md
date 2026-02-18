@@ -8,7 +8,7 @@ OrsaCusto é uma aplicação em desenvolvimento para gestão de orçamentos e cu
 
 🚧 **Em Desenvolvimento** - Projeto em fase inicial de planejamento e estruturação.
 
-## �� Como Começar
+## 🤝 Como Começar
 
 Este projeto está sendo desenvolvido de forma colaborativa. Veja o arquivo [PROJETO.md](./PROJETO.md) para informações sobre o planejamento e próximos passos.
 
