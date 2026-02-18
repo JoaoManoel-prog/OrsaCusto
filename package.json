@@ -1,0 +1,18 @@
+{
+  "name": "orsacusto",
+  "version": "0.1.0",
+  "description": "OrsaCusto - AI-powered task planning and cost management tool",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "plan": "node src/planner.js"
+  },
+  "keywords": [
+    "planning",
+    "task-management",
+    "cost-estimation",
+    "ai-agent"
+  ],
+  "author": "JoaoManoel",
+  "license": "MIT"
+}
