@@ -25,7 +25,10 @@ class TestOrsaCusto(unittest.TestCase):
 
     def test_version(self):
         """Testa se a versão está definida."""
-        import __init__ as orsacusto
+        # Adiciona o diretório pai do src ao path
+        parent_dir = os.path.join(os.path.dirname(__file__), '..')
+        sys.path.insert(0, parent_dir)
+        import src as orsacusto
         self.assertTrue(hasattr(orsacusto, '__version__'))
         self.assertIsInstance(orsacusto.__version__, str)
 
