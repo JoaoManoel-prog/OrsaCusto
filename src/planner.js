@@ -38,6 +38,8 @@ class PlanAgent {
    */
   generatePlan(task) {
     // Simple planning logic - breaks down the task into phases
+    // Note: This provides a generic framework applicable to most tasks.
+    // Future enhancement: Parse task description to customize phases and steps.
     const plan = {
       task: task,
       timestamp: new Date().toISOString(),
