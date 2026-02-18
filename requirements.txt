@@ -1,0 +1,12 @@
+# Dependências Python para OrsaCusto
+# A lista será expandida conforme as necessidades do projeto
+
+# Core - a ser definido baseado nos requisitos
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Development
+black>=23.0.0
+flake8>=6.0.0
